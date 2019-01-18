@@ -1,0 +1,38 @@
+{
+  "name": "fluture-hooks",
+  "version": "0.0.0",
+  "description": "Fantasy Land Monad and Alternative instances for Fluture's hook",
+  "main": "index",
+  "module": "index.mjs",
+  "scripts": {
+    "build": "rollup -c rollup.config.mjs",
+    "release": "xyz --edit --script scripts/prerelease --increment",
+    "test": "node --experimental-modules --no-warnings --stack-trace-limit=100 ./test/index.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/fluture/fluture-hooks.git"
+  },
+  "files": [
+    "/index.js",
+    "/index.mjs",
+    "/LICENSE",
+    "/package.json",
+    "/README.md"
+  ],
+  "author": "Aldwin Vlasblom <aldwin@avaq.it> (https://github.com/Avaq)",
+  "license": "MIT",
+  "dependencies": {
+    "callgebra": "^0.1.0"
+  },
+  "peerDependencies": {
+    "fluture": ">=10.0.0 <11.0.0"
+  },
+  "devDependencies": {
+    "fluture": "^10.3.0",
+    "rollup": "^1.1.0",
+    "sanctuary-type-identifiers": "^2.0.1",
+    "transcribe": "^1.1.1",
+    "xyz": "^3.0.0"
+  }
+}

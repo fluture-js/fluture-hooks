@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -eufo pipefail
+npm out --long
+npm whoami
+npm run build
+transcribe --url 'https://github.com/fluture-js/fluture-hooks/blob/master/{filename}#L{line}' index.mjs > README.md
+git add README.md
