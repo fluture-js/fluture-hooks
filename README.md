@@ -12,11 +12,11 @@ import {node, fork} from 'fluture';
 import {hook, hookAll, runHook} from 'fluture-hooks';
 
 const acquirePostgres = (
-  node (done => require ('imaginary-postgres') .connect (config, done))
+  node (done => require ('imaginary-postgres') .connect (done))
 );
 
 const acquireRedis = (
-  node(done => require ('imaginary-redis') .connect (config, done))
+  node(done => require ('imaginary-redis') .connect (done))
 );
 
 const closeConnection = connection => (
