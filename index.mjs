@@ -58,12 +58,11 @@ const $chain = 'fantasy-land/chain';
 const id = x => x;
 const pure = T => x => T[$of](x);
 
-const join = chain(id);
 const lift2 = f => a => b => ap(map(f)(a))(b);
 
 const head = ([x]) => x;
-const prepend = x => xs => [x].concat(xs);
-const mprepend = lift2(prepend);
+const append = xs => x => xs.concat([x]);
+const mappend = lift2(append);
 
 function HookFromCallback(run){
   if(typeof run !== 'function') throw new TypeError('Function expected');
@@ -172,7 +171,7 @@ ParallelHook.prototype[$ap] = function(mf){
 //. Converts a ParallelHook to a normal Hook.
 export const sequential = m => m.hook;
 
-const hookAllReducer = (y, x) => mprepend(x)(y);
+const hookAllReducer = (xs, x) => mappend(xs)(x);
 
 //# hookAll :: Array (Hook (Future a b)) -> Hook (Future a (Array b))
 //.
