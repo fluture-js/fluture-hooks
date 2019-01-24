@@ -14,7 +14,7 @@ const assertType = name => x => {
   eq (t.name) (name);
 }
 
-const runParallel = f => compose (runHook (f)) (sequential);
+const runParallel = compose (runHook) (sequential);
 const effect = value (id);
 
 const with42 = Hook.of (42);
@@ -29,23 +29,23 @@ assertType ('Hook') (mockHook);
 assertType ('Hook') (mockHook2);
 assertType ('ParallelHook') (mockParallelHook);
 
-eq (runHook (id) (with42)) (42);
-eq (runHook (id) (map (inc) (with42))) (43);
-eq (runHook (id) (ap (Hook.of (inc)) (with42))) (43);
-eq (runHook (id) (chain (Hook.of) (with42))) (42);
+eq (runHook (with42) (id)) (42);
+eq (runHook (map (inc) (with42)) (id)) (43);
+eq (runHook (ap (Hook.of (inc)) (with42)) (id)) (43);
+eq (runHook (chain (Hook.of) (with42)) (id)) (42);
 
-eq (runParallel (id) (with42p)) (42);
-eq (runParallel (id) (map (inc) (with42p))) (43);
+eq (runParallel (with42p) (id)) (42);
+eq (runParallel (map (inc) (with42p)) (id)) (43);
 
-value (eq (43)) (runParallel (resolve) (ap (ParallelHook.of (inc)) (with42p)));
+value (eq (43)) (runParallel (ap (ParallelHook.of (inc)) (with42p)) (resolve));
 
-effect (runHook (compose (resolve) (eq ({disposed: false}))) (mockHook));
-value (eq ({disposed: true})) (runHook (resolve) (mockHook));
+effect (runHook (mockHook) (compose (resolve) (eq ({disposed: false}))));
+value (eq ({disposed: true})) (runHook (mockHook) (resolve));
 
-effect (runHook (compose (resolve) (eq ({disposed: false}))) (mockHook2));
-value (eq ({disposed: false})) (runHook (resolve) (mockHook2));
+effect (runHook (mockHook2) (compose (resolve) (eq ({disposed: false}))));
+value (eq ({disposed: false})) (runHook (mockHook2) (resolve));
 
 eq (sequential (mockParallelHook)) (mockHook);
-value (eq ([{disposed: true}, {disposed: true}])) (runHook (resolve) (hookAll ([mockHook, mockHook])));
+value (eq ([{disposed: true}, {disposed: true}])) (runHook (hookAll ([mockHook, mockHook])) (resolve));
 
 console.log('Tests pass');

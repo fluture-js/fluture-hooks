@@ -118,12 +118,15 @@ export const hook = m => f => Hook(baseHook(m, f));
 //. Creates a Hook without the need for a disposal function.
 export const acquire = m => Hook(f => chain(f)(m));
 
-//# runHook :: (a -> b) -> Hook b a -> b
+//# runHook :: Hook b a -> (a -> b) -> b
 //.
-//. Given a callback and a Hook, runs the Hook, returning the callbacks' return
+//. Given a Hook and a callback, runs the Hook, returning the callbacks' return
 //. value. For Hooks created from Fluture's hook, this means a Future is
 //. retured.
-export const runHook = callback => hook => hook.run(callback);
+//.
+//. This function can also be thought of as "untagging" a [`Hook`](#Hook):
+//. `runHook (Hook (h)) = h`.
+export const runHook = hook => hook.run;
 
 //# ParallelHook :: Hook a b -> ParallelHook a b
 //.
