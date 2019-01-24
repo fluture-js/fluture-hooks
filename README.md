@@ -35,7 +35,7 @@ fork (console.error) (console.log) (app (withServices));
 
 ## API
 
-### <a name="Hook" href="https://github.com/fluture-js/fluture-hooks/blob/master/index.mjs#L80">`Hook :: ((b -⁠> a) -⁠> a) -⁠> Hook a b`</a>
+### <a name="Hook" href="https://github.com/fluture-js/fluture-hooks/blob/master/index.mjs#L79">`Hook :: ((b -⁠> a) -⁠> a) -⁠> Hook a b`</a>
 
 Tags a function awaiting a callback (such as the value returned by
 [Fluture's `hook`][hook]) as a "Hook".
@@ -46,32 +46,35 @@ Tags a function awaiting a callback (such as the value returned by
 Hook(Future.hook(myResourceAcquisition, myResourceDisposal));
 ```
 
-### <a name="hook" href="https://github.com/fluture-js/fluture-hooks/blob/master/index.mjs#L111">`hook :: Future a b -⁠> (b -⁠> Future a c) -⁠> Hook (Future a d) b`</a>
+### <a name="hook" href="https://github.com/fluture-js/fluture-hooks/blob/master/index.mjs#L110">`hook :: Future a b -⁠> (b -⁠> Future a c) -⁠> Hook (Future a d) b`</a>
 
 `hook(m)(f)` is the equivalent of `Hook(Future.hook(m, f))`.
 
-### <a name="acquire" href="https://github.com/fluture-js/fluture-hooks/blob/master/index.mjs#L116">`acquire :: Future a b -⁠> Hook (Future a d) b`</a>
+### <a name="acquire" href="https://github.com/fluture-js/fluture-hooks/blob/master/index.mjs#L115">`acquire :: Future a b -⁠> Hook (Future a d) b`</a>
 
 Creates a Hook without the need for a disposal function.
 
-### <a name="runHook" href="https://github.com/fluture-js/fluture-hooks/blob/master/index.mjs#L121">`runHook :: (a -⁠> b) -⁠> Hook b a -⁠> b`</a>
+### <a name="runHook" href="https://github.com/fluture-js/fluture-hooks/blob/master/index.mjs#L120">`runHook :: Hook b a -⁠> (a -⁠> b) -⁠> b`</a>
 
-Given a callback and a Hook, runs the Hook, returning the callbacks' return
+Given a Hook and a callback, runs the Hook, returning the callbacks' return
 value. For Hooks created from Fluture's hook, this means a Future is
 retured.
 
-### <a name="ParallelHook" href="https://github.com/fluture-js/fluture-hooks/blob/master/index.mjs#L128">`ParallelHook :: Hook a b -⁠> ParallelHook a b`</a>
+This function can also be thought of as "untagging" a [`Hook`](#Hook):
+`runHook (Hook (h)) = h`.
+
+### <a name="ParallelHook" href="https://github.com/fluture-js/fluture-hooks/blob/master/index.mjs#L130">`ParallelHook :: Hook a b -⁠> ParallelHook a b`</a>
 
 Construct a ParallelHook using a Hook.
 
 `ParallelHook a` has a Functor instance, and `ParallelHook (Future a b)`
 has an Applicative instance with parallel behaviour.
 
-### <a name="sequential" href="https://github.com/fluture-js/fluture-hooks/blob/master/index.mjs#L167">`sequential :: ParallelHook a b -⁠> Hook a b`</a>
+### <a name="sequential" href="https://github.com/fluture-js/fluture-hooks/blob/master/index.mjs#L169">`sequential :: ParallelHook a b -⁠> Hook a b`</a>
 
 Converts a ParallelHook to a normal Hook.
 
-### <a name="hookAll" href="https://github.com/fluture-js/fluture-hooks/blob/master/index.mjs#L174">`hookAll :: Array (Hook (Future a b)) -⁠> Hook (Future a (Array b))`</a>
+### <a name="hookAll" href="https://github.com/fluture-js/fluture-hooks/blob/master/index.mjs#L176">`hookAll :: Array (Hook (Future a b)) -⁠> Hook (Future a (Array b))`</a>
 
 Combines resources from many hooks into a single hook in parallel.
 
