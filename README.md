@@ -11,11 +11,11 @@ Fantasy Land Monad and Alternative instances for return values from
 import {node, fork} from 'fluture';
 import {hook, hookAll, runHook} from 'fluture-hooks';
 
-const acquirePostgres = config => (
+const acquirePostgres = (
   node (done => require ('imaginary-postgres') .connect (config, done))
 );
 
-const acquireRedis = config => (
+const acquireRedis = (
   node(done => require ('imaginary-redis') .connect (config, done))
 );
 
