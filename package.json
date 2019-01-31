@@ -23,7 +23,7 @@
   "author": "Aldwin Vlasblom <aldwin@avaq.it> (https://github.com/Avaq)",
   "license": "MIT",
   "dependencies": {
-    "callgebra": "^0.1.0"
+    "callgebra": "^1.0.0"
   },
   "peerDependencies": {
     "fluture": ">=10.0.0 <11.0.0"
