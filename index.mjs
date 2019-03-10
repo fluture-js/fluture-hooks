@@ -107,7 +107,7 @@ Hook.prototype[$chain] = function(f){
   return Hook(Callback.chain(x => f(x).run)(this.run));
 }
 
-//# hook :: Future a b -> (b -> Future a c) -> Hook (Future a d) b
+//# hook :: Future a b -> (b -> Future c d) -> Hook (Future a e) b
 //.
 //. `hook(m)(f)` is the equivalent of `Hook(Future.hook(m, f))`.
 export const hook = m => f => Hook(baseHook(m, f));
