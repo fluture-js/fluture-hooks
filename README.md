@@ -46,7 +46,7 @@ Tags a function awaiting a callback (such as the value returned by
 Hook(Future.hook(myResourceAcquisition, myResourceDisposal));
 ```
 
-### <a name="hook" href="https://github.com/fluture-js/fluture-hooks/blob/master/index.mjs#L110">`hook :: Future a b -⁠> (b -⁠> Future a c) -⁠> Hook (Future a d) b`</a>
+### <a name="hook" href="https://github.com/fluture-js/fluture-hooks/blob/master/index.mjs#L110">`hook :: Future a b -⁠> (b -⁠> Future c d) -⁠> Hook (Future a e) b`</a>
 
 `hook(m)(f)` is the equivalent of `Hook(Future.hook(m, f))`.
 
