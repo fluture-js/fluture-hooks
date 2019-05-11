@@ -26,10 +26,10 @@
     "callgebra": "^1.0.0"
   },
   "peerDependencies": {
-    "fluture": ">=11.0.0 <12.0.0"
+    "fluture": ">=12.0.0 <13.0.0"
   },
   "devDependencies": {
-    "fluture": "^11.0.0",
+    "fluture": "^12.0.0-beta.1",
     "rollup": "^1.1.0",
     "sanctuary-type-identifiers": "^2.0.1",
     "transcribe": "^1.1.1",

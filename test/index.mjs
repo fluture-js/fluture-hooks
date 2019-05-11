@@ -31,13 +31,13 @@ assertType ('ParallelHook') (mockParallelHook);
 
 eq (runHook (with42) (id)) (42);
 eq (runHook (map (inc) (with42)) (id)) (43);
-eq (runHook (ap (Hook.of (inc)) (with42)) (id)) (43);
+eq (runHook (ap (with42) (Hook.of (inc))) (id)) (43);
 eq (runHook (chain (Hook.of) (with42)) (id)) (42);
 
 eq (runParallel (with42p) (id)) (42);
 eq (runParallel (map (inc) (with42p)) (id)) (43);
 
-value (eq (43)) (runParallel (ap (ParallelHook.of (inc)) (with42p)) (resolve));
+value (eq (43)) (runParallel (ap (with42p) (ParallelHook.of (inc))) (resolve));
 
 effect (runHook (mockHook) (compose (resolve) (eq ({id: 1, disposed: false}))));
 value (eq ({id: 1, disposed: true})) (runHook (mockHook) (resolve));
