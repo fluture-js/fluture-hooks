@@ -37,8 +37,6 @@ import * as Callback from 'callgebra';
 import {
   Future,
   ap,
-  both,
-  cache,
   chain,
   fold,
   fork,
@@ -55,12 +53,11 @@ const $ap = 'fantasy-land/ap';
 const $map = 'fantasy-land/map';
 const $chain = 'fantasy-land/chain';
 
-const id = x => x;
 const pure = T => x => T[$of](x);
+const noop = () => {};
 
 const lift2 = f => a => b => ap(map(f)(a))(b);
 
-const head = ([x]) => x;
 const append = xs => x => xs.concat([x]);
 const mappend = lift2(append);
 
@@ -146,23 +143,34 @@ ParallelHook.prototype[$map] = function(f){
   return ParallelHook(map(f)(this.hook));
 }
 
+const crash = e => Future(() => { throw e });
+
 ParallelHook.prototype[$ap] = function(mf){
   return ParallelHook(Hook(c => {
-    let f, x, b = false;
-    const mirror = cache(never);
-    const rf = mf.hook.run(_f => {
-      f = _f;
-      if (b) return map(x => mirror.resolve(x) || x)(c(f(x)));
-      b = true;
-      return mirror;
-    });
-    const rx = this.hook.run(_x => {
-      x = _x;
-      if (b) return map(x => mirror.resolve(x) || x)(c(f(x)));
-      b = true;
-      return mirror;
-    });
-    return map(head)(both(rf, rx));
+    let consume = noop;
+    const rf = mf.hook.run(f => consume !== noop ? consume (f) : (
+      Future((rej, res) => { consume = x => map(y => (res(y), y))(c(f(x))) })
+    ));
+    const rx = this.hook.run(x => consume !== noop ? consume (x) : (
+      Future((rej, res) => { consume = f => map(y => (res(y), y))(c(f(x))) })
+    ));
+    const transformation = {
+      cancel: noop,
+      context: rx.context,
+      rejected: () => never,
+      resolved: () => never,
+      toString: () => `parallelHookTransform(${rx.toString()})`,
+      run: early => {
+        const action = Object.create(transformation);
+        action.cancel = rx._interpret(
+          e => early(crash(e), action),
+          x => early(reject(x), action),
+          x => early(resolve(x), action),
+        );
+        return action;
+      },
+    };
+    return rf._transform(transformation);
   }));
 }
 
