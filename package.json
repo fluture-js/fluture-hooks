@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "fluture": "^11.0.0",
-    "rollup": "^1.1.0",
+    "rollup": "^1.21.4",
     "sanctuary-type-identifiers": "^2.0.1",
     "transcribe": "^1.1.1",
     "xyz": "^3.0.0"
