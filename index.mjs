@@ -26,11 +26,9 @@
 //. const withPostgres = hook (acquirePostgres) (closeConnection);
 //. const withRedis = hook (acquireRedis) (closeConnection);
 //.
-//. const withServices = hookAll ([withPostgres, withRedis]);
+//. const app = runHook (hookAll ([withPostgres, withRedis]));
 //.
-//. const app = runHook (([postgres, redis]) => {/*...*/});
-//.
-//. fork (console.error) (console.log) (app (withServices));
+//. fork (console.error) (console.log) (app (([postgres, redis]) => {}));
 //. ```
 
 import * as Callback from 'callgebra';
