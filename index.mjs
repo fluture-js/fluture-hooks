@@ -179,7 +179,7 @@ export const sequential = m => m.hook;
 
 const hookAllReducer = (xs, x) => mappend(xs)(x);
 
-//# hookAll :: Array (Hook (Future a b)) -> Hook (Future a (Array b))
+//# hookAll :: Array (Hook i (Future a b)) -> Hook i (Future a (Array b))
 //.
 //. Combines resources from many hooks into a single hook in parallel.
 //.
