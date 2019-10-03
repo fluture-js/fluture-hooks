@@ -8,7 +8,7 @@
 //. ## Usage Example
 //.
 //. ```js
-//. import {node, fork} from 'fluture';
+//. import {Future, node, fork} from 'fluture';
 //. import {hook, hookAll, runHook} from 'fluture-hooks';
 //.
 //. const acquirePostgres = (
@@ -23,12 +23,17 @@
 //.   node(done => connection.end (done))
 //. );
 //.
-//. const withPostgres = hook (acquirePostgres) (closeConnection);
-//. const withRedis = hook (acquireRedis) (closeConnection);
+//. const postgresHook = hook (acquirePostgres) (closeConnection);
+//. const redisHook = hook (acquireRedis) (closeConnection);
+//. const servicesHook = hookAll ([postgresHook, redisHook]);
 //.
-//. const app = runHook (hookAll ([withPostgres, withRedis]));
+//. const withServices = runHook (servicesHook);
 //.
-//. fork (console.error) (console.log) (app (([postgres, redis]) => {}));
+//. fork (console.error)
+//.      (console.log)
+//.      (withServices (([postgres, redis]) => Future ((rej, res) => {
+//.        /* consume postgres and redis */
+//.      })));
 //. ```
 
 import * as Callback from 'callgebra';
