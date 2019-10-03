@@ -8,29 +8,32 @@
 //. ## Usage Example
 //.
 //. ```js
-//. import {node, fork} from 'fluture';
+//. import {Future, node, fork} from 'fluture';
 //. import {hook, hookAll, runHook} from 'fluture-hooks';
 //.
 //. const acquirePostgres = (
-//.   node (done => require ('imaginary-postgres') .connect (done))
+//.   node (done => require ('imaginary-postgres').connect (done))
 //. );
 //.
 //. const acquireRedis = (
-//.   node(done => require ('imaginary-redis') .connect (done))
+//.   node (done => require ('imaginary-redis').connect (done))
 //. );
 //.
 //. const closeConnection = connection => (
-//.   node(done => connection.end (done))
+//.   node (done => connection.end (done))
 //. );
 //.
-//. const withPostgres = hook (acquirePostgres) (closeConnection);
-//. const withRedis = hook (acquireRedis) (closeConnection);
+//. const postgresHook = hook (acquirePostgres) (closeConnection);
+//. const redisHook = hook (acquireRedis) (closeConnection);
+//. const servicesHook = hookAll ([postgresHook, redisHook]);
 //.
-//. const withServices = hookAll ([withPostgres, withRedis]);
+//. const withServices = runHook (servicesHook);
 //.
-//. const app = runHook (([postgres, redis]) => {/*...*/});
-//.
-//. fork (console.error) (console.log) (app (withServices));
+//. fork (console.error)
+//.      (console.log)
+//.      (withServices (([postgres, redis]) => Future ((rej, res) => {
+//.        /* consume postgres and redis */
+//.      })));
 //. ```
 
 import * as Callback from 'callgebra';
@@ -81,7 +84,7 @@ function ParallelHookFromHook(hook){
 //. `Hook a` has Monad instance with sequential behaviour in its Applicative.
 //.
 //. ```js
-//. Hook(Future.hook(myResourceAcquisition, myResourceDisposal));
+//. Hook (Future.hook (myResourceAcquisition) (myResourceDisposal));
 //. ```
 export function Hook(run){
   return new HookFromCallback(run);
@@ -106,7 +109,7 @@ Hook.prototype[$chain] = function(f){
 
 //# hook :: Future a b -> (b -> Future c d) -> Hook (Future a e) b
 //.
-//. `hook(m)(f)` is the equivalent of `Hook(Future.hook(m, f))`.
+//. `hook (m) (f)` is the equivalent of `Hook (Future.hook (m) (f))`.
 export const hook = m => f => Hook(baseHook(m, f));
 
 //# acquire :: Future a b -> Hook (Future a d) b
@@ -181,7 +184,7 @@ export const sequential = m => m.hook;
 
 const hookAllReducer = (xs, x) => mappend(xs)(x);
 
-//# hookAll :: Array (Hook (Future a b)) -> Hook (Future a (Array b))
+//# hookAll :: Array (Hook i (Future a b)) -> Hook i (Future a (Array b))
 //.
 //. Combines resources from many hooks into a single hook in parallel.
 //.
