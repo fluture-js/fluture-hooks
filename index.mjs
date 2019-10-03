@@ -12,15 +12,15 @@
 //. import {hook, hookAll, runHook} from 'fluture-hooks';
 //.
 //. const acquirePostgres = (
-//.   node (done => require ('imaginary-postgres') .connect (done))
+//.   node (done => require ('imaginary-postgres').connect (done))
 //. );
 //.
 //. const acquireRedis = (
-//.   node(done => require ('imaginary-redis') .connect (done))
+//.   node (done => require ('imaginary-redis').connect (done))
 //. );
 //.
 //. const closeConnection = connection => (
-//.   node(done => connection.end (done))
+//.   node (done => connection.end (done))
 //. );
 //.
 //. const postgresHook = hook (acquirePostgres) (closeConnection);
@@ -84,7 +84,7 @@ function ParallelHookFromHook(hook){
 //. `Hook a` has Monad instance with sequential behaviour in its Applicative.
 //.
 //. ```js
-//. Hook(Future.hook(myResourceAcquisition, myResourceDisposal));
+//. Hook (Future.hook (myResourceAcquisition) (myResourceDisposal));
 //. ```
 export function Hook(run){
   return new HookFromCallback(run);
@@ -109,7 +109,7 @@ Hook.prototype[$chain] = function(f){
 
 //# hook :: Future a b -> (b -> Future c d) -> Hook (Future a e) b
 //.
-//. `hook(m)(f)` is the equivalent of `Hook(Future.hook(m, f))`.
+//. `hook (m) (f)` is the equivalent of `Hook (Future.hook (m) (f))`.
 export const hook = m => f => Hook(baseHook(m, f));
 
 //# acquire :: Future a b -> Hook (Future a d) b
