@@ -1,7 +1,11 @@
 import {deepStrictEqual} from 'assert';
-import {attempt, value, resolve, map, ap, chain} from 'fluture';
+import {Future, attempt, value, resolve, map, ap, chain} from 'fluture/index.js';
+import {equivalence} from 'fluture/test/assertions.js';
 import identify from 'sanctuary-type-identifiers';
-import {Hook, hook, acquire, runHook, ParallelHook, sequential, hookAll} from '..';
+import {Hook, hook, acquire, runHook, ParallelHook, sequential, hookAll} from '../index.js';
+import test from 'oletus'
+
+const crash = e => Future (() => { throw e });
 
 const id = x => x;
 const inc = x => x + 1;
@@ -25,29 +29,34 @@ const mockHook = hook (mockAcquire (1)) (mockDispose);
 const mockHook2 = acquire (mockAcquire (2));
 const mockParallelHook = ParallelHook (mockHook);
 
-assertType ('Hook') (mockHook);
-assertType ('Hook') (mockHook2);
-assertType ('ParallelHook') (mockParallelHook);
+test ('type errors', ({throws}) => {
+  throws (() => Hook (null), new TypeError ('Function expected'));
+  throws (() => ParallelHook (null), new TypeError ('Hook expected'));
+});
 
-eq (runHook (with42) (id)) (42);
-eq (runHook (map (inc) (with42)) (id)) (43);
-eq (runHook (ap (Hook.of (inc)) (with42)) (id)) (43);
-eq (runHook (chain (Hook.of) (with42)) (id)) (42);
+test ('assertions', () => {
+  assertType ('Hook') (mockHook);
+  assertType ('Hook') (mockHook2);
+  assertType ('ParallelHook') (mockParallelHook);
 
-eq (runParallel (with42p) (id)) (42);
-eq (runParallel (map (inc) (with42p)) (id)) (43);
+  eq (runHook (with42) (id)) (42);
+  eq (runHook (map (inc) (with42)) (id)) (43);
+  eq (runHook (ap (with42) (Hook.of (inc))) (id)) (43);
+  eq (runHook (chain (Hook.of) (with42)) (id)) (42);
 
-value (eq (43)) (runParallel (ap (ParallelHook.of (inc)) (with42p)) (resolve));
+  eq (runParallel (with42p) (id)) (42);
+  eq (runParallel (map (inc) (with42p)) (id)) (43);
 
-effect (runHook (mockHook) (compose (resolve) (eq ({id: 1, disposed: false}))));
-value (eq ({id: 1, disposed: true})) (runHook (mockHook) (resolve));
+  value (eq (43)) (runParallel (ap (with42p) (ParallelHook.of (inc))) (resolve));
 
-effect (runHook (mockHook2) (compose (resolve) (eq ({id: 2, disposed: false}))));
-value (eq ({id: 2, disposed: false})) (runHook (mockHook2) (resolve));
+  effect (runHook (mockHook) (compose (resolve) (eq ({id: 1, disposed: false}))));
+  value (eq ({id: 1, disposed: true})) (runHook (mockHook) (resolve));
 
-eq (sequential (mockParallelHook)) (mockHook);
+  effect (runHook (mockHook2) (compose (resolve) (eq ({id: 2, disposed: false}))));
+  value (eq ({id: 2, disposed: false})) (runHook (mockHook2) (resolve));
 
-value (eq ([{id: 1, disposed: true}, {id: 2, disposed: false}]))
-      (runHook (hookAll ([mockHook, mockHook2])) (resolve));
+  eq (sequential (mockParallelHook)) (mockHook);
 
-console.log('Tests pass');
+  value (eq ([{id: 1, disposed: true}, {id: 2, disposed: false}]))
+        (runHook (hookAll ([mockHook, mockHook2])) (resolve));
+});
