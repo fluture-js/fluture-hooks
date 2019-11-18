@@ -8,8 +8,8 @@
 //. ## Usage Example
 //.
 //. ```js
-//. import {Future, node, fork} from 'fluture';
-//. import {hook, hookAll, runHook} from 'fluture-hooks';
+//. import {Future, node, fork} from 'fluture/index.js';
+//. import {hook, hookAll, runHook} from 'fluture-hooks/index.js';
 //.
 //. const acquirePostgres = (
 //.   node (done => require ('imaginary-postgres').connect (done))
@@ -36,20 +36,17 @@
 //.      })));
 //. ```
 
-import * as Callback from 'callgebra';
+import * as Callback from 'callgebra/index.js';
 import {
   Future,
   ap,
   chain,
-  fold,
-  fork,
   hook as baseHook,
   map,
   never,
-  race,
   reject,
   resolve,
-} from 'fluture';
+} from 'fluture/index.js';
 
 const $of = 'fantasy-land/of';
 const $ap = 'fantasy-land/ap';
@@ -59,7 +56,7 @@ const $chain = 'fantasy-land/chain';
 const pure = T => x => T[$of](x);
 const noop = () => {};
 
-const lift2 = f => a => b => ap(map(f)(a))(b);
+const lift2 = f => a => b => ap(b)(map(f)(a));
 
 const append = xs => x => xs.concat([x]);
 const mappend = lift2(append);
@@ -110,7 +107,7 @@ Hook.prototype[$chain] = function(f){
 //# hook :: Future a b -> (b -> Future c d) -> Hook (Future a e) b
 //.
 //. `hook (m) (f)` is the equivalent of `Hook (Future.hook (m) (f))`.
-export const hook = m => f => Hook(baseHook(m, f));
+export const hook = m => f => Hook(baseHook(m)(f));
 
 //# acquire :: Future a b -> Hook (Future a d) b
 //.
@@ -146,22 +143,31 @@ ParallelHook.prototype[$map] = function(f){
   return ParallelHook(map(f)(this.hook));
 }
 
+/* c8 ignore next */
 const crash = e => Future(() => { throw e });
 
 ParallelHook.prototype[$ap] = function(mf){
   return ParallelHook(Hook(c => {
     let consume = noop;
     const rf = mf.hook.run(f => consume !== noop ? consume (f) : (
-      Future((rej, res) => { consume = x => map(y => (res(y), y))(c(f(x))) })
+      Future((rej, res) => {
+        consume = x => map(y => (res(y), y))(c(f(x)));
+        return noop;
+      })
     ));
     const rx = this.hook.run(x => consume !== noop ? consume (x) : (
-      Future((rej, res) => { consume = f => map(y => (res(y), y))(c(f(x))) })
+      Future((rej, res) => {
+        consume = f => map(y => (res(y), y))(c(f(x)));
+        return noop;
+      })
     ));
     const transformation = {
       cancel: noop,
       context: rx.context,
+      /* c8 ignore next */
       rejected: () => never,
       resolved: () => never,
+      /* c8 ignore next */
       toString: () => `parallelHookTransform(${rx.toString()})`,
       run: early => {
         const action = Object.create(transformation);
