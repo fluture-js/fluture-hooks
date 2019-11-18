@@ -12,5 +12,5 @@ if ! npm outdated --long; then
 fi
 
 npm run build
-transcribe --url 'https://github.com/fluture-js/fluture-hooks/blob/master/{filename}#L{line}' index.mjs > README.md
+transcribe --url 'https://github.com/fluture-js/fluture-hooks/blob/master/{filename}#L{line}' index.js > README.md
 git add README.md
