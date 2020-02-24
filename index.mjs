@@ -42,7 +42,7 @@ import {
   ap,
   chain,
   fold,
-  fork,
+  forkCatch,
   hook as baseHook,
   map,
   never,
@@ -146,34 +146,39 @@ ParallelHook.prototype[$map] = function(f){
   return ParallelHook(map(f)(this.hook));
 }
 
-const crash = e => Future(() => { throw e });
+const CustomFuture = function (interpret) {
+  this._interpret = interpret;
+}
 
-ParallelHook.prototype[$ap] = function(mf){
-  return ParallelHook(Hook(c => {
-    let consume = noop;
-    const rf = mf.hook.run(f => consume !== noop ? consume (f) : (
-      Future((rej, res) => { consume = x => map(y => (res(y), y))(c(f(x))) })
+CustomFuture.prototype = Object.create (Future.prototype);
+
+ParallelHook.prototype[$ap] = function(parallelFunctionHook){
+  const withValue = runHook (sequential (this));
+  const withFunction = runHook (sequential (parallelFunctionHook));
+  return ParallelHook(Hook(consumeResult => {
+    let result = null;
+
+    const setResult = value => new CustomFuture (() => {
+      result = {value};
+      return noop;
+    });
+
+    const eventuallyConsumeValue = withValue (val => (
+      result ? consumeResult (result.value (val)) : setResult (val)
     ));
-    const rx = this.hook.run(x => consume !== noop ? consume (x) : (
-      Future((rej, res) => { consume = f => map(y => (res(y), y))(c(f(x))) })
+
+    const eventuallyConsumeFunction = withFunction (func => (
+      result ? consumeResult (func (result.value)) : setResult (func)
     ));
-    const transformation = {
-      cancel: noop,
-      context: rx.context,
-      rejected: () => never,
-      resolved: () => never,
-      toString: () => `parallelHookTransform(${rx.toString()})`,
-      run: early => {
-        const action = Object.create(transformation);
-        action.cancel = rx._interpret(
-          e => early(crash(e), action),
-          x => early(reject(x), action),
-          x => early(resolve(x), action),
-        );
-        return action;
-      },
-    };
-    return rf._transform(transformation);
+
+    return new CustomFuture ((rec, rej, res) => {
+      const cancelValue = forkCatch (rec) (rej) (res) (eventuallyConsumeValue);
+      const cancelFunction = forkCatch (rec) (rej) (res) (eventuallyConsumeFunction);
+      return () => {
+        cancelValue();
+        cancelFunction();
+      };
+    });
   }));
 }
 
