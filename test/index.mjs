@@ -19,10 +19,13 @@ const assertType = name => x => {
 
 const runParallel = compose (runHook) (sequential);
 const effect = fl.value (id);
+const countTo = n => Array.from ({length: n}, (_, i) => i + 1);
 
 const with42 = Hook.of (42);
 const with42p = ParallelHook.of (42);
-const mockAcquire = id => fl.attempt (() => ({id, disposed: 0}));
+const liveResource = id => ({id, disposed: 0});
+const deadResource = id => ({id, disposed: 1});
+const mockAcquire = fl.encase (liveResource);
 const mockDispose = resource => fl.attempt (() => { resource.disposed++ });
 const mockHook = hook (mockAcquire (1)) (mockDispose);
 const mockHook2 = acquire (mockAcquire (2));
@@ -73,27 +76,12 @@ const mockHooks = [ hook (mockAcquire (1)) (mockDispose)
                   , hook (delay (mockAcquire (8))) (mockDisposeAsync) ];
 
 test ('async assertions', () => Promise.all ([
-  equivalence (runHook (hook (delay (mockAcquire (1))) (mockDisposeAsync))
-                       (fl.resolve))
+  equivalence (runHook (hook (delay (mockAcquire (1))) (mockDisposeAsync)) (fl.resolve))
               (fl.resolve ({id: 1, disposed: 1})),
 
   equivalence (runHook (hookAll (mockHooks)) (fl.resolve))
-              (fl.resolve ([ {id: 1, disposed: 1}
-                           , {id: 2, disposed: 1}
-                           , {id: 3, disposed: 1}
-                           , {id: 4, disposed: 1}
-                           , {id: 5, disposed: 1}
-                           , {id: 6, disposed: 1}
-                           , {id: 7, disposed: 1}
-                           , {id: 8, disposed: 1} ])),
+              (fl.resolve (countTo (8) .map (deadResource))),
 
   fl.promise (runHook (hookAll (mockHooks))
-                      (compose (fl.resolve) (eq ([ {id: 1, disposed: 0}
-                                                 , {id: 2, disposed: 0}
-                                                 , {id: 3, disposed: 0}
-                                                 , {id: 4, disposed: 0}
-                                                 , {id: 5, disposed: 0}
-                                                 , {id: 6, disposed: 0}
-                                                 , {id: 7, disposed: 0}
-                                                 , {id: 8, disposed: 0} ])))),
+                      (compose (fl.resolve) (eq (countTo (8) .map (liveResource))))),
 ]));
