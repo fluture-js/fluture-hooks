@@ -22,8 +22,8 @@ const effect = fl.value (id);
 
 const with42 = Hook.of (42);
 const with42p = ParallelHook.of (42);
-const mockAcquire = id => fl.attempt (() => ({id, disposed: false}));
-const mockDispose = resource => fl.attempt (() => { resource.disposed = true });
+const mockAcquire = id => fl.attempt (() => ({id, disposed: 0}));
+const mockDispose = resource => fl.attempt (() => { resource.disposed++ });
 const mockHook = hook (mockAcquire (1)) (mockDispose);
 const mockHook2 = acquire (mockAcquire (2));
 const mockParallelHook = ParallelHook (mockHook);
@@ -48,15 +48,15 @@ test ('assertions', () => {
 
   fl.value (eq (43)) (runParallel (fl.ap (with42p) (ParallelHook.of (inc))) (fl.resolve));
 
-  effect (runHook (mockHook) (compose (fl.resolve) (eq ({id: 1, disposed: false}))));
-  fl.value (eq ({id: 1, disposed: true})) (runHook (mockHook) (fl.resolve));
+  effect (runHook (mockHook) (compose (fl.resolve) (eq ({id: 1, disposed: 0}))));
+  fl.value (eq ({id: 1, disposed: 1})) (runHook (mockHook) (fl.resolve));
 
-  effect (runHook (mockHook2) (compose (fl.resolve) (eq ({id: 2, disposed: false}))));
-  fl.value (eq ({id: 2, disposed: false})) (runHook (mockHook2) (fl.resolve));
+  effect (runHook (mockHook2) (compose (fl.resolve) (eq ({id: 2, disposed: 0}))));
+  fl.value (eq ({id: 2, disposed: 0})) (runHook (mockHook2) (fl.resolve));
 
   eq (sequential (mockParallelHook)) (mockHook);
 
-  fl.value (eq ([{id: 1, disposed: true}, {id: 2, disposed: false}]))
+  fl.value (eq ([{id: 1, disposed: 1}, {id: 2, disposed: 0}]))
            (runHook (hookAll ([mockHook, mockHook2])) (fl.resolve));
 });
 
@@ -75,25 +75,25 @@ const mockHooks = [ hook (mockAcquire (1)) (mockDispose)
 test ('async assertions', () => Promise.all ([
   equivalence (runHook (hook (delay (mockAcquire (1))) (mockDisposeAsync))
                        (fl.resolve))
-              (fl.resolve ({id: 1, disposed: true})),
+              (fl.resolve ({id: 1, disposed: 1})),
 
   equivalence (runHook (hookAll (mockHooks)) (fl.resolve))
-              (fl.resolve ([ {id: 1, disposed: true}
-                           , {id: 2, disposed: true}
-                           , {id: 3, disposed: true}
-                           , {id: 4, disposed: true}
-                           , {id: 5, disposed: true}
-                           , {id: 6, disposed: true}
-                           , {id: 7, disposed: true}
-                           , {id: 8, disposed: true} ])),
+              (fl.resolve ([ {id: 1, disposed: 1}
+                           , {id: 2, disposed: 1}
+                           , {id: 3, disposed: 1}
+                           , {id: 4, disposed: 1}
+                           , {id: 5, disposed: 1}
+                           , {id: 6, disposed: 1}
+                           , {id: 7, disposed: 1}
+                           , {id: 8, disposed: 1} ])),
 
   fl.promise (runHook (hookAll (mockHooks))
-                      (compose (fl.resolve) (eq ([ {id: 1, disposed: false}
-                                                 , {id: 2, disposed: false}
-                                                 , {id: 3, disposed: false}
-                                                 , {id: 4, disposed: false}
-                                                 , {id: 5, disposed: false}
-                                                 , {id: 6, disposed: false}
-                                                 , {id: 7, disposed: false}
-                                                 , {id: 8, disposed: false} ])))),
+                      (compose (fl.resolve) (eq ([ {id: 1, disposed: 0}
+                                                 , {id: 2, disposed: 0}
+                                                 , {id: 3, disposed: 0}
+                                                 , {id: 4, disposed: 0}
+                                                 , {id: 5, disposed: 0}
+                                                 , {id: 6, disposed: 0}
+                                                 , {id: 7, disposed: 0}
+                                                 , {id: 8, disposed: 0} ])))),
 ]));

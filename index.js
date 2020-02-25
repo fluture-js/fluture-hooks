@@ -174,7 +174,7 @@ ParallelHook.prototype[$ap] = function(mf){
         action.cancel = rx._interpret(
           e => early(crash(e), action),
           x => early(reject(x), action),
-          x => early(resolve(x), action),
+          noop,
         );
         return action;
       },
