@@ -10,6 +10,7 @@ const crash = e => fl.Future (() => { throw e });
 const id = x => x;
 const inc = x => x + 1;
 const compose = f => g => x => f (g (x));
+const countTo = n => Array.from ({length: n}, (_, i) => i + 1);
 
 const assertType = name => x => {
   const t = identify.parse (identify (x));
@@ -19,7 +20,7 @@ const assertType = name => x => {
 
 const runParallel = compose (runHook) (sequential);
 const effect = fl.value (id);
-const countTo = n => Array.from ({length: n}, (_, i) => i + 1);
+const delay = compose (fl.chainRej (fl.rejectAfter (50))) (fl.chain (fl.after (50)));
 
 const with42 = Hook.of (42);
 const with42p = ParallelHook.of (42);
@@ -27,6 +28,7 @@ const liveResource = id => ({id, disposed: 0});
 const deadResource = id => ({id, disposed: 1});
 const mockAcquire = fl.encase (liveResource);
 const mockDispose = resource => fl.attempt (() => { resource.disposed++ });
+const mockDisposeAsync = compose (delay) (mockDispose);
 const mockHook = hook (mockAcquire (1)) (mockDispose);
 const mockHook2 = acquire (mockAcquire (2));
 const mockParallelHook = ParallelHook (mockHook);
@@ -63,9 +65,6 @@ test ('assertions', () => {
            (runHook (hookAll ([mockHook, mockHook2])) (fl.resolve));
 });
 
-const delay = fl.chain (fl.after (10));
-const mockDisposeAsync = compose (delay) (mockDispose);
-
 const mockHooks = [ hook (mockAcquire (1)) (mockDispose)
                   , hook (delay (mockAcquire (2))) (mockDispose)
                   , hook (mockAcquire (3)) (mockDisposeAsync)
@@ -85,3 +84,61 @@ test ('async assertions', () => Promise.all ([
   fl.promise (runHook (hookAll (mockHooks))
                       (compose (fl.resolve) (eq (countTo (8) .map (liveResource))))),
 ]));
+
+const choice = [true, false];
+choice.forEach(lr => choice.forEach (ld => choice.forEach (rr => choice.forEach (rd => choice.forEach (ldd => choice.forEach (rdd => choice.forEach (cr => choice.forEach (cd => {
+  const name = `left acquire ${
+    lr ? 'reject' : 'resolve'
+  } ${
+    ld ? 'delayed' : 'instantly'
+  }; right acquire ${
+    rr ? 'reject' : 'resolve'
+  } ${
+    rd ? 'delayed' : 'instantly'
+  }; left disposal resolve ${
+    ldd ? 'delayed' : 'instantly'
+  }; right disposal resolve ${
+    rdd ? 'delayed' : 'instantly'
+  }; consumption ${
+    cr ? 'reject' : 'resolve'
+  } ${
+    cd ? 'delayed' : 'instantly'
+  }`;
+
+  const leftAcquire = (ld ? delay : id) (lr ? fl.reject ('meh') : fl.resolve (41));
+  const rightAcquire = (rd ? delay : id) (rr ? fl.reject ('meh') : fl.resolve (inc));
+  const leftDisposal = compose (ldd ? delay : id) (fl.resolve);
+  const rightDisposal = compose (rdd ? delay : id) (fl.resolve);
+  const consume = compose (cd ? delay : id) (cr ? _ => fl.reject ('meh') : fl.resolve);
+
+  const expected = lr || rr || cr ? fl.reject ('meh') : fl.resolve (42);
+
+  const cancellable = (
+    (lr && !ld) ? (false) :
+    (rr && !rd) ? (!ld && ldd) :
+    (ld || rd || cd || ldd || rdd)
+  );
+
+  const it = runParallel (fl.ap (ParallelHook (hook (leftAcquire) (leftDisposal)))
+                                (ParallelHook (hook (rightAcquire) (rightDisposal))))
+                         (consume);
+
+  test (`parallel result: ${name}`, () => (
+    equivalence (it) (expected)
+  ));
+
+  test (`parallel cancellation: ${name}`, () => new Promise ((res, rej) => {
+    if (cancellable) {
+      let cancelled = false;
+      const fail = _ => rej (new Error (`Cancellation failed ${cancelled ? '' : 'instantly'}`));
+      const cancel = fl.fork (fail) (fail) (it);
+      cancel ();
+      cancelled = true;
+      setTimeout (res, 100);
+    } else {
+      const cancel = fl.fork (res) (res) (it);
+      cancel();
+      rej (new Error ('Did not settle immediately'));
+    }
+  }));
+}))))))));

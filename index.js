@@ -40,12 +40,11 @@ import * as Callback from 'callgebra/index.js';
 import {
   Future,
   ap,
+  cache,
   chain,
-  hook as baseHook,
+  hook as asyncHook,
   map,
   never,
-  reject,
-  resolve,
 } from 'fluture/index.js';
 
 const $of = 'fantasy-land/of';
@@ -54,10 +53,7 @@ const $map = 'fantasy-land/map';
 const $chain = 'fantasy-land/chain';
 
 const pure = T => x => T[$of](x);
-const noop = () => {};
-
 const lift2 = f => a => b => ap(b)(map(f)(a));
-
 const append = xs => x => xs.concat([x]);
 const mappend = lift2(append);
 
@@ -107,7 +103,7 @@ Hook.prototype[$chain] = function(f){
 //# hook :: Future a b -> (b -> Future c d) -> Hook (Future a e) b
 //.
 //. `hook (m) (f)` is the equivalent of `Hook (Future.hook (m) (f))`.
-export const hook = m => f => Hook(baseHook(m)(f));
+export const hook = m => f => Hook(asyncHook(m)(f));
 
 //# acquire :: Future a b -> Hook (Future a d) b
 //.
@@ -143,44 +139,75 @@ ParallelHook.prototype[$map] = function(f){
   return ParallelHook(map(f)(this.hook));
 }
 
-/* c8 ignore next */
-const crash = e => Future(() => { throw e });
+const CustomFuture = function (interpret) {
+  this._interpret = interpret;
+}
 
-ParallelHook.prototype[$ap] = function(mf){
-  return ParallelHook(Hook(c => {
-    let consume = noop;
-    const rf = mf.hook.run(f => consume !== noop ? consume (f) : (
-      Future((rej, res) => {
-        consume = x => map(y => (res(y), y))(c(f(x)));
-        return noop;
-      })
-    ));
-    const rx = this.hook.run(x => consume !== noop ? consume (x) : (
-      Future((rej, res) => {
-        consume = f => map(y => (res(y), y))(c(f(x)));
-        return noop;
-      })
-    ));
-    const transformation = {
-      cancel: noop,
-      context: rx.context,
-      /* c8 ignore next */
-      rejected: () => never,
-      resolved: () => never,
-      /* c8 ignore next */
-      toString: () => `parallelHookTransform(${rx.toString()})`,
-      run: early => {
-        const action = Object.create(transformation);
-        action.cancel = rx._interpret(
-          e => early(crash(e), action),
-          x => early(reject(x), action),
-          noop,
-        );
-        return action;
-      },
+CustomFuture.prototype = Object.create (Future.prototype);
+
+ParallelHook.prototype[$ap] = function(parallelFunctionHook){
+  const withValue = runHook (sequential (this));
+  const withFunction = runHook (sequential (parallelFunctionHook));
+  return ParallelHook(Hook(consumeResult => new CustomFuture ((rec, rej, res) => {
+    let deferred = null, cont = null, cancelled = false, cancelValue = null, cancelFunction = null;
+
+    const defer = value => {
+      deferred = cache (never);
+      deferred.value = value;
+      return deferred;
     };
-    return rf._transform(transformation);
-  }));
+
+    const consume = resource => new CustomFuture ((rec, rej, res) => (
+      consumeResult (resource) ._interpret ( x => {rec (x); deferred.crash (x)}
+                                           , x => {rej (x); deferred.reject (x)}
+                                           , x => {res (x); deferred.resolve (x)} )
+    ));
+
+    const eventuallyConsumeValue = withValue (val => (
+      deferred ? consume (deferred.value (val)) : defer (val)
+    ));
+
+    const eventuallyConsumeFunction = withFunction (func => (
+      deferred ? consume (func (deferred.value)) : defer (func)
+    ));
+
+    /* c8 ignore next 3 */
+    const crash = x => {
+      cancel ();
+      rec (x);
+    };
+
+    const reject = x => {
+      if (cont !== null) rej (x);
+      else if (deferred === null) {
+        cancel ();
+        rej (x);
+      } else {
+        /* c8 ignore next */
+        cont = () => rej (x);
+        deferred.reject (x);
+      }
+    };
+
+    const resolve = x => {
+      if (cont !== null) cont ();
+      else cont = () => res (x);
+    }
+
+    cancelValue = eventuallyConsumeValue ._interpret (crash, reject, resolve);
+    cancelFunction = (
+      cancelled ? null : eventuallyConsumeFunction ._interpret (crash, reject, resolve)
+    );
+
+    function cancel(){
+      if (cancelled) return;
+      cancelled = true;
+      cancelValue && cancelValue();
+      cancelFunction && cancelFunction();
+    };
+
+    return cancel;
+  })));
 }
 
 //# sequential :: ParallelHook a b -> Hook a b
