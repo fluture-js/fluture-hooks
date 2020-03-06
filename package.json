@@ -33,7 +33,7 @@
     "c8": "^6.0.1",
     "fluture": "^12.0.0",
     "oletus": "^3.0.0",
-    "rollup": "^1.21.4",
+    "rollup": "^2.0.0",
     "sanctuary-type-identifiers": "^2.0.1",
     "transcribe": "^1.1.1",
     "xyz": "^4.0.0"
