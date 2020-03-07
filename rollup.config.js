@@ -13,6 +13,6 @@ export default {
     globals: {
       'fluture/index.js': 'Fluture',
       'callgebra/index.js': 'callgebra',
-    }
-  }
+    },
+  },
 };

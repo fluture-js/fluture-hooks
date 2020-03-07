@@ -2,21 +2,30 @@
   "name": "fluture-hooks",
   "version": "2.0.1",
   "description": "Fantasy Land Monad and Alternative instances for Fluture's hook",
+  "tags": [
+    "fluture",
+    "monad",
+    "fantasy-land",
+    "resource-management"
+  ],
   "type": "module",
   "main": "index.cjs",
   "module": "index.js",
   "scripts": {
     "build": "rollup -c rollup.config.js",
-    "release": "xyz --edit --script scripts/prerelease --increment",
-    "test": "c8 --check-coverage --branches 100 --functions 100 --lines 100 --statements 100 node --experimental-modules --no-warnings ./node_modules/.bin/oletus"
+    "codecov": "codecov",
+    "doctest": "sanctuary-doctest",
+    "lint": "sanctuary-lint",
+    "release": "sanctuary-release",
+    "test": "npm run lint && sanctuary-test && npm run doctest"
   },
   "repository": {
     "type": "git",
     "url": "git://github.com/fluture-js/fluture-hooks.git"
   },
   "files": [
+    "/index.cjs",
     "/index.js",
-    "/index.mjs",
     "/LICENSE",
     "/package.json",
     "/README.md"
@@ -31,11 +40,11 @@
   },
   "devDependencies": {
     "c8": "^7.1.0",
+    "codecov": "^3.2.0",
     "fluture": "^12.0.0",
     "oletus": "^3.0.0",
     "rollup": "^2.0.0",
-    "sanctuary-type-identifiers": "^2.0.1",
-    "transcribe": "^1.1.1",
-    "xyz": "^4.0.0"
+    "sanctuary-scripts": "^4.0.0",
+    "sanctuary-type-identifiers": "^2.0.1"
   }
 }

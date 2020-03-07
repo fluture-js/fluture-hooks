@@ -1,11 +1,8 @@
-import {deepStrictEqual} from 'assert';
 import * as fl from 'fluture/index.js';
 import {equivalence, equality as eq} from 'fluture/test/assertions.js';
 import identify from 'sanctuary-type-identifiers';
 import {Hook, hook, acquire, runHook, ParallelHook, sequential, hookAll} from '../index.js';
-import test from 'oletus'
-
-const crash = e => fl.Future (() => { throw e });
+import test from 'oletus';
 
 const id = x => x;
 const inc = x => x + 1;
@@ -16,7 +13,7 @@ const assertType = name => x => {
   const t = identify.parse (identify (x));
   eq (t.namespace) ('fluture');
   eq (t.name) (name);
-}
+};
 
 const runParallel = compose (runHook) (sequential);
 const effect = fl.value (id);
@@ -27,7 +24,7 @@ const with42p = ParallelHook.of (42);
 const liveResource = id => ({id, disposed: 0});
 const deadResource = id => ({id, disposed: 1});
 const mockAcquire = fl.encase (liveResource);
-const mockDispose = resource => fl.attempt (() => { resource.disposed++ });
+const mockDispose = resource => fl.attempt (() => { resource.disposed += 1; });
 const mockDisposeAsync = compose (delay) (mockDispose);
 const mockHook = hook (mockAcquire (1)) (mockDispose);
 const mockHook2 = acquire (mockAcquire (2));
@@ -65,28 +62,28 @@ test ('assertions', () => {
            (runHook (hookAll ([mockHook, mockHook2])) (fl.resolve));
 });
 
-const mockHooks = [ hook (mockAcquire (1)) (mockDispose)
-                  , hook (delay (mockAcquire (2))) (mockDispose)
-                  , hook (mockAcquire (3)) (mockDisposeAsync)
-                  , hook (delay (mockAcquire (4))) (mockDisposeAsync)
-                  , hook (mockAcquire (5)) (mockDispose)
-                  , hook (delay (mockAcquire (6))) (mockDispose)
-                  , hook (mockAcquire (7)) (mockDisposeAsync)
-                  , hook (delay (mockAcquire (8))) (mockDisposeAsync) ];
+const mockHooks = [hook (mockAcquire (1)) (mockDispose),
+                   hook (delay (mockAcquire (2))) (mockDispose),
+                   hook (mockAcquire (3)) (mockDisposeAsync),
+                   hook (delay (mockAcquire (4))) (mockDisposeAsync),
+                   hook (mockAcquire (5)) (mockDispose),
+                   hook (delay (mockAcquire (6))) (mockDispose),
+                   hook (mockAcquire (7)) (mockDisposeAsync),
+                   hook (delay (mockAcquire (8))) (mockDisposeAsync)];
 
 test ('async assertions', () => Promise.all ([
   equivalence (runHook (hook (delay (mockAcquire (1))) (mockDisposeAsync)) (fl.resolve))
               (fl.resolve ({id: 1, disposed: 1})),
 
   equivalence (runHook (hookAll (mockHooks)) (fl.resolve))
-              (fl.resolve (countTo (8) .map (deadResource))),
+              (fl.resolve (countTo (8).map (deadResource))),
 
   fl.promise (runHook (hookAll (mockHooks))
-                      (compose (fl.resolve) (eq (countTo (8) .map (liveResource))))),
+                      (compose (fl.resolve) (eq (countTo (8).map (liveResource))))),
 ]));
 
 const choice = [true, false];
-choice.forEach(lr => choice.forEach (ld => choice.forEach (rr => choice.forEach (rd => choice.forEach (ldd => choice.forEach (rdd => choice.forEach (cr => choice.forEach (cd => {
+choice.forEach (lr => choice.forEach (ld => choice.forEach (rr => choice.forEach (rd => choice.forEach (ldd => choice.forEach (rdd => choice.forEach (cr => choice.forEach (cd => {
   const name = `left acquire ${
     lr ? 'reject' : 'resolve'
   } ${
@@ -137,7 +134,7 @@ choice.forEach(lr => choice.forEach (ld => choice.forEach (rr => choice.forEach 
       setTimeout (res, 100);
     } else {
       const cancel = fl.fork (res) (res) (it);
-      cancel();
+      cancel ();
       rej (new Error ('Did not settle immediately'));
     }
   }));
