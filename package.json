@@ -1,6 +1,6 @@
 {
   "name": "fluture-hooks",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Fantasy Land Monad and Alternative instances for Fluture's hook",
   "main": "index",
   "module": "index.mjs",
