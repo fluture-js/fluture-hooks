@@ -52,18 +52,22 @@ const $ap = 'fantasy-land/ap';
 const $map = 'fantasy-land/map';
 const $chain = 'fantasy-land/chain';
 
-const pure = T => x => T[$of](x);
-const lift2 = f => a => b => ap(b)(map(f)(a));
-const append = xs => x => xs.concat([x]);
-const mappend = lift2(append);
+const pure = T => x => T[$of] (x);
+const lift2 = f => a => b => ap (b) (map (f) (a));
+const append = xs => x => xs.concat ([x]);
+const mappend = lift2 (append);
 
-function HookFromCallback(run){
-  if(typeof run !== 'function') throw new TypeError('Function expected');
+function HookFromCallback(run) {
+  if (typeof run !== 'function') {
+    throw new TypeError ('Function expected');
+  }
   this.run = run;
 }
 
-function ParallelHookFromHook(hook){
-  if(!(hook instanceof Hook)) throw new TypeError('Hook expected');
+function ParallelHookFromHook(hook) {
+  if (!(hook instanceof Hook)) {
+    throw new TypeError ('Hook expected');
+  }
   this.hook = hook;
 }
 
@@ -79,36 +83,36 @@ function ParallelHookFromHook(hook){
 //. ```js
 //. Hook (Future.hook (myResourceAcquisition) (myResourceDisposal));
 //. ```
-export function Hook(run){
-  return new HookFromCallback(run);
-};
+export function Hook(run) {
+  return new HookFromCallback (run);
+}
 
-HookFromCallback.prototype = Object.create(Hook.prototype);
+HookFromCallback.prototype = Object.create (Hook.prototype);
 
 Hook['@@type'] = 'fluture/Hook@1';
-Hook.of = Hook[$of] = x => Hook(Callback.of(x));
+Hook.of = Hook[$of] = x => Hook (Callback.of (x));
 
-Hook.prototype[$ap] = function(mf){
-  return Hook(Callback.ap(mf.run)(this.run));
-}
+Hook.prototype[$ap] = function(mf) {
+  return Hook (Callback.ap (mf.run) (this.run));
+};
 
-Hook.prototype[$map] = function(f){
-  return Hook(Callback.map(f)(this.run));
-}
+Hook.prototype[$map] = function(f) {
+  return Hook (Callback.map (f) (this.run));
+};
 
-Hook.prototype[$chain] = function(f){
-  return Hook(Callback.chain(x => f(x).run)(this.run));
-}
+Hook.prototype[$chain] = function(f) {
+  return Hook (Callback.chain (x => f (x).run) (this.run));
+};
 
 //# hook :: Future a b -> (b -> Future c d) -> Hook (Future a e) b
 //.
 //. `hook (m) (f)` is the equivalent of `Hook (Future.hook (m) (f))`.
-export const hook = m => f => Hook(asyncHook(m)(f));
+export const hook = m => f => Hook (asyncHook (m) (f));
 
 //# acquire :: Future a b -> Hook (Future a d) b
 //.
 //. Creates a Hook without the need for a disposal function.
-export const acquire = m => Hook(f => chain(f)(m));
+export const acquire = m => Hook (f => chain (f) (m));
 
 //# runHook :: Hook b a -> (a -> b) -> b
 //.
@@ -126,30 +130,34 @@ export const runHook = hook => hook.run;
 //.
 //. `ParallelHook a` has a Functor instance, and `ParallelHook (Future a b)`
 //. has an Applicative instance with parallel behaviour.
-export function ParallelHook(hook){
-  return new ParallelHookFromHook(hook);
+export function ParallelHook(hook) {
+  return new ParallelHookFromHook (hook);
 }
 
-ParallelHookFromHook.prototype = Object.create(ParallelHook.prototype);
+ParallelHookFromHook.prototype = Object.create (ParallelHook.prototype);
 
 ParallelHook['@@type'] = 'fluture/ParallelHook@1';
-ParallelHook.of = ParallelHook[$of] = x => ParallelHook(pure(Hook)(x));
+ParallelHook.of = ParallelHook[$of] = x => ParallelHook (pure (Hook) (x));
 
-ParallelHook.prototype[$map] = function(f){
-  return ParallelHook(map(f)(this.hook));
-}
+ParallelHook.prototype[$map] = function(f) {
+  return ParallelHook (map (f) (this.hook));
+};
 
-const CustomFuture = function (interpret) {
+function CustomFuture(interpret) {
   this._interpret = interpret;
 }
 
 CustomFuture.prototype = Object.create (Future.prototype);
 
-ParallelHook.prototype[$ap] = function(parallelFunctionHook){
+ParallelHook.prototype[$ap] = function(parallelFunctionHook) {
   const withValue = runHook (sequential (this));
   const withFunction = runHook (sequential (parallelFunctionHook));
-  return ParallelHook(Hook(consumeResult => new CustomFuture ((rec, rej, res) => {
-    let deferred = null, cont = null, cancelled = false, cancelValue = null, cancelFunction = null;
+  return ParallelHook (Hook (callback => new CustomFuture ((rec, rej, res) => {
+    let deferred = null;
+    let cont = null;
+    let cancelled = false;
+    let cancelValue = null;
+    let cancelFunction = null;
 
     const defer = value => {
       deferred = cache (never);
@@ -158,9 +166,9 @@ ParallelHook.prototype[$ap] = function(parallelFunctionHook){
     };
 
     const consume = resource => new CustomFuture ((rec, rej, res) => (
-      consumeResult (resource) ._interpret ( x => {rec (x); deferred.crash (x)}
-                                           , x => {rej (x); deferred.reject (x)}
-                                           , x => {res (x); deferred.resolve (x)} )
+      callback (resource)._interpret (x => { rec (x); deferred.crash (x); }
+                                     , x => { rej (x); deferred.reject (x); }
+                                     , x => { res (x); deferred.resolve (x); })
     ));
 
     const eventuallyConsumeValue = withValue (val => (
@@ -178,8 +186,7 @@ ParallelHook.prototype[$ap] = function(parallelFunctionHook){
     };
 
     const reject = x => {
-      if (cont !== null) rej (x);
-      else if (deferred === null) {
+      if (cont != null) { rej (x); } else if (deferred == null) {
         cancel ();
         rej (x);
       } else {
@@ -190,32 +197,34 @@ ParallelHook.prototype[$ap] = function(parallelFunctionHook){
     };
 
     const resolve = x => {
-      if (cont !== null) cont ();
+      if (cont != null) cont ();
       else cont = () => res (x);
-    }
+    };
 
-    cancelValue = eventuallyConsumeValue ._interpret (crash, reject, resolve);
+    cancelValue = eventuallyConsumeValue._interpret (crash, reject, resolve);
     cancelFunction = (
-      cancelled ? null : eventuallyConsumeFunction ._interpret (crash, reject, resolve)
+      cancelled ?
+      null :
+      eventuallyConsumeFunction._interpret (crash, reject, resolve)
     );
 
-    function cancel(){
+    function cancel() {
       if (cancelled) return;
       cancelled = true;
-      cancelValue && cancelValue();
-      cancelFunction && cancelFunction();
-    };
+      cancelValue && cancelValue ();
+      cancelFunction && cancelFunction ();
+    }
 
     return cancel;
   })));
-}
+};
 
 //# sequential :: ParallelHook a b -> Hook a b
 //.
 //. Converts a ParallelHook to a normal Hook.
 export const sequential = m => m.hook;
 
-const hookAllReducer = (xs, x) => mappend(xs)(x);
+const hookAllReducer = (xs, x) => mappend (xs) (x);
 
 //# hookAll :: Array (Hook (Future a b) c) -> Hook (Future a b) (Array c)
 //.
@@ -225,6 +234,6 @@ const hookAllReducer = (xs, x) => mappend(xs)(x);
 //. `hookAll (hooks)` is the equivalent of
 //. `sequential (sequence (ParallelHook) (map (ParallelHook) (hooks)))` for all
 //. `hooks :: Array (Hook (Future a b) c)`.
-export const hookAll = xs => sequential(
-  xs.map(ParallelHook).reduce(hookAllReducer, pure(ParallelHook)([]))
+export const hookAll = xs => sequential (
+  xs.map (ParallelHook).reduce (hookAllReducer, pure (ParallelHook) ([]))
 );
