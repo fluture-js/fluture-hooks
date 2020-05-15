@@ -90,7 +90,10 @@ export function Hook(run) {
 HookFromCallback.prototype = Object.create (Hook.prototype);
 
 Hook['@@type'] = 'fluture/Hook@1';
+Hook.constructor = {prototype: Hook};
 Hook.of = Hook[$of] = x => Hook (Callback.of (x));
+
+Hook.prototype['@@type'] = Hook['@@type'];
 
 Hook.prototype[$ap] = function(mf) {
   return Hook (Callback.ap (mf.run) (this.run));
@@ -137,7 +140,10 @@ export function ParallelHook(hook) {
 ParallelHookFromHook.prototype = Object.create (ParallelHook.prototype);
 
 ParallelHook['@@type'] = 'fluture/ParallelHook@1';
+ParallelHook.constructor = {prototype: ParallelHook};
 ParallelHook.of = ParallelHook[$of] = x => ParallelHook (pure (Hook) (x));
+
+ParallelHook.prototype['@@type'] = ParallelHook['@@type'];
 
 ParallelHook.prototype[$map] = function(f) {
   return ParallelHook (map (f) (this.hook));
