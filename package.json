@@ -1,6 +1,6 @@
 {
   "name": "fluture-hooks",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Fantasy Land Monad and Alternative instances for Fluture's hook",
   "keywords": [
     "fluture",

@@ -21,14 +21,14 @@
 //.
 //. You can load the EcmaScript module from various content delivery networks:
 //.
-//. - [Skypack](https://cdn.skypack.dev/fluture-hooks@2.1.1)
-//. - [JSPM](https://jspm.dev/fluture-hooks@2.1.1)
-//. - [jsDelivr](https://cdn.jsdelivr.net/npm/fluture-hooks@2.1.1/+esm)
+//. - [Skypack](https://cdn.skypack.dev/fluture-hooks@2.1.2)
+//. - [JSPM](https://jspm.dev/fluture-hooks@2.1.2)
+//. - [jsDelivr](https://cdn.jsdelivr.net/npm/fluture-hooks@2.1.2/+esm)
 //.
 //. ### Old Browsers and Code Pens
 //.
 //. There's a [UMD][] file included in the NPM package, also available via
-//. jsDelivr: https://cdn.jsdelivr.net/npm/fluture-hooks@2.1.1/dist/umd.js
+//. jsDelivr: https://cdn.jsdelivr.net/npm/fluture-hooks@2.1.2/dist/umd.js
 //.
 //. This file adds `flutureProject` to the global scope, or use CommonJS/AMD
 //. when available.
