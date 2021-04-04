@@ -10,7 +10,7 @@
 //. ### Node
 //.
 //. ```console
-//. $ npm install --save fluture-project
+//. $ npm install --save fluture-hooks
 //. ```
 //.
 //. On Node 12 and up, this module can be loaded directly with `import` or
@@ -21,14 +21,14 @@
 //.
 //. You can load the EcmaScript module from various content delivery networks:
 //.
-//. - [Skypack](https://cdn.skypack.dev/fluture-project@0.0.0)
-//. - [JSPM](https://jspm.dev/fluture-project@0.0.0)
-//. - [jsDelivr](https://cdn.jsdelivr.net/npm/fluture-project@0.0.0/+esm)
+//. - [Skypack](https://cdn.skypack.dev/fluture-hooks@0.0.0)
+//. - [JSPM](https://jspm.dev/fluture-hooks@0.0.0)
+//. - [jsDelivr](https://cdn.jsdelivr.net/npm/fluture-hooks@0.0.0/+esm)
 //.
 //. ### Old Browsers and Code Pens
 //.
 //. There's a [UMD][] file included in the NPM package, also available via
-//. jsDelivr: https://cdn.jsdelivr.net/npm/fluture-project@0.0.0/dist/umd.js
+//. jsDelivr: https://cdn.jsdelivr.net/npm/fluture-hooks@0.0.0/dist/umd.js
 //.
 //. This file adds `flutureProject` to the global scope, or use CommonJS/AMD
 //. when available.
