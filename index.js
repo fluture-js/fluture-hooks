@@ -30,7 +30,7 @@
 //. There's a [UMD][] file included in the NPM package, also available via
 //. jsDelivr: https://cdn.jsdelivr.net/npm/fluture-hooks@2.1.2/dist/umd.js
 //.
-//. This file adds `flutureProject` to the global scope, or use CommonJS/AMD
+//. This file adds `flutureHooks` to the global scope, or use CommonJS/AMD
 //. when available.
 //.
 //. ### Usage Example
